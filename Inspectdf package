@@ -4,7 +4,7 @@ rm(list=ls())
 setwd("D:/RLab/EDA")
 
 library(devtools)
-install_github("alastairrushworth/inspectdf")
+# install_github("alastairrushworth/inspectdf")
 
 library(inspectdf)
 library(dplyr)
