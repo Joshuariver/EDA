@@ -1,0 +1,88 @@
+---
+title: "EDA in R"
+author: "joshuariver@naver.com"
+date: '2021 4 25 '
+output: html_document
+source: https://www.statmethods.net/stats/descriptives.html
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 탐색적 기술분석 (Exploratory Data Analysis)란?
+
+
+
+탐색적 자료 분석(영어: Exploratory data analysis)은 존 튜키라는 미국의 저명한 통계학자가 창안한 자료 분석 방법론이다. 기존의 통계학이 정보의 추출에서 가설 검정 등에 치우쳐 자료가 가지고 있는 본연의 의미를 찾는데 어려움이 있어 이를 보완하고자 주어진 자료만 가지고도 충분한 정보를 찾을 수 있도록 여러가지 탐색적 자료 분석 방법을 개발하였다. 대표적인 예로 박스플롯을 들 수 있다. 탐색적 자료 분석을 통하여 자료에 대한 충분한 이해를 한 후에 모형 적합 등의 좀 더 정교한 모형을 개발할 수 있다. 
+
+탐색적 자료분석(EDA)를 다른 표현으로 기술분석(Discriptive analysis)라고도 한다.
+
+R에서는 기술 분석을 수행하는 것을 지원하는 몇 가지의 패키지들이 있다.
+
+
+```{r cars}
+
+library(readxl)
+library(dplyr)
+
+# data
+dat <- read_xlsx("data/telco_train.xlsx")
+df <- data(cars)
+
+
+```
+
+## R의 Base 패키지를 이용한 분석
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+summary(dat)
+```
+
+```{r pressure, echo=FALSE}
+fivenum(dat)
+```
+
+
+```{r , echo=FALSE}
+library(Hmisc)
+describe(dat)
+```
+
+
+```{r , echo=FALSE}
+library(pastecs)
+stat.desc(dat)
+
+
+```
+
+
+```{r , echo=FALSE}
+library(psych)
+describe(dat)
+
+```
+
+
+
+```{r , echo=FALSE}
+describe.by(dat, group = dat$JobRole)
+```
+
+
+
+```{r , echo=FALSE}
+library(doBy)
+summaryBy(JobSatisfaction ~ Gender + JobRole, data = dat,
+          FUN = function(x){ c(m = mean(x), s = sd(x))})
+
+```
+
+
+
+
+
+
