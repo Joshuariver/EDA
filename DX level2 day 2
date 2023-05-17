@@ -1,0 +1,892 @@
+---
+title: "Welcome to LG DX Level 2 course: DX Enabler - Day 2"
+output: html_notebook
+---
+
+4. Ideas of EDA
+
+패키지 설치 실습
+
+{r}
+# install.packages("aplpack")
+# install.packages("readr")
+# install.packages("dplyr")
+
+변수의 지정
+
+{r}
+lre <- "#A50034"   #html 컬러코드
+lgr <- "#6b6b6b"
+lgo <- "#FAB23D"
+toeic <- read.csv(paste0("./data/toeic.2021.csv")) # 45개국 toeic 점수
+
+source("eda.funs.R")
+
+
+p.10 Stem & leaf 도표로 데이터 보기
+
+{r}
+library(aplpack)
+library(readr)
+library(dplyr)
+
+toeic <- read.csv("data/toeic.2021.csv")
+
+max(toeic$total)
+
+min(toeic$total)
+
+mean(toeic$total)
+
+median(toeic$total)
+
+stem.leaf(toeic$total, unit = 1, m =1)
+
+p.11 데이터 구조 들여다 보기
+
+{r}
+str(toeic)
+
+결측값(중간에 측정되지 않아 누락된 값)이 있는지 알아보기
+
+{r}
+sum(is.na(toeic))
+
+p.12 Table
+
+{r}
+table <- head(toeic,5)
+table
+
+
+조건 부여 후 검색해 보기
+
+줄기 - 잎 그리기 (기본 R패키지의 stem함수 사용)
+
+{r}
+stem(toeic$total, scale = 10)    # 줄기-잎 그리기
+
+p.14 조건 부여 후 검색해 보기
+
+{r}
+unique(toeic$country)  # toeic 데이터의 country 열에 어떤 변수들이 있는가?
+toeic %>% dplyr::filter(country == "KOREA (ROK)")
+
+stem.leaf(toeic$total, unit = 10, m =1)
+stem.leaf(toeic$total, unit = 10, m =2)
+stem.leaf(toeic$total, unit = 10, m =5)
+
+중앙값과 평균 확인
+
+{r}
+median(toeic$total)  # 중앙값
+mean(toeic$total) # 평균값
+
+p.15 plot 길이의 조정
+
+{r}
+stem(toeic$total, scale = 1)
+
+800점 이상인 국가를 확인
+
+{r}
+toeic %>% dplyr::filter(total >= 800)
+toeic %>% dplyr::filter(total == 826)
+
+p.16 540점 미만인 국가를 확인
+
+{r}
+toeic %>% dplyr::filter(total <= 530)
+toeic %>% dplyr::filter(total == 480)
+
+인도네시아와 같은 언어를 사용하는 나라인 말레이시아의 점수 확인
+
+{r}
+toeic %>% filter(country == "MALAYSIA")
+
+Reading 과 Listening 의 점수 상호 비교
+
+{r}
+stem.leaf.backback(toeic$listening, toeic$reading, unit = 10, m=2)
+
+전반적으로 reading 보다 listening 의 점수가 높음.
+
+Graph
+
+{r}
+library(patchwork)
+library(forcats)
+library(ggplot2)
+t1 <- toeic  %>%
+ mutate(country = fct_reorder(country, total))  %>%
+  ggplot(aes(total, country), size = 0.9) +
+ geom_point(color = "blue", size = 0.9) + 
+ geom_vline(xintercept = median(toeic$total), size = 0.3, color = lre) +
+ geom_vline(xintercept = mean(toeic$total), size = 0.3, color = lgr)+
+ theme_bw() +
+ theme(axis.text.y = element_text(size = rel(.8))) +
+ annotate("text", x=mean(toeic$total) , y = 10, label="평균", size = 2, color = "black") +
+ annotate("text", x=median(toeic$total),y = 20, label="중앙값", size = 2, color = lre) +
+ geom_hline(aes(yintercept = which(levels(as.factor(country)) == 'KOREA (ROK)')), 
+            lty =2, color = lgo) +
+ labs( y = "국가", x = "TOEIC 평균 점수")
+
+t2 <- toeic  %>%
+ mutate(country = fct_reorder(country, listening))  %>%
+ ggplot(aes(listening, country), size = 0.9) +
+ geom_point(color = "blue", size = 0.9) + 
+ geom_point(aes(reading, country), size = 0.5, color = lre, size = 0.7) + 
+ geom_vline(xintercept = median(toeic$reading), size = 0.3, color = lre) +
+ geom_vline(xintercept = mean(toeic$reading), size = 0.3, color = lgr)+
+ geom_vline(xintercept = median(toeic$listening), size = 0.3, color = lre) +
+ geom_vline(xintercept = mean(toeic$listening), size = 0.3, color = lgr)+
+ geom_hline(aes(yintercept = which(levels(as.factor(country)) == 'KOREA (ROK)')), 
+            lty =2, color = "orange") +
+ theme_bw() +
+ theme(axis.text.y = element_text(size = rel(.8))) +
+ annotate("text", x=mean(toeic$reading) , y = 10,
+          label="Reading 평균", size = 2, color = "black") +
+ annotate("text", x=median(toeic$reading),y = 20,
+          label="Reading 중앙값", size = 2, color = lre) +
+ annotate("text", x=mean(toeic$listening), 
+          y = 30, label="Listening 평균", size = 2, color = "black") +
+ annotate("text", x=median(toeic$listening), 
+          y = 40, label="Listening 중앙값", size = 2, color = lre) +
+ labs( y = "국가", x = "TOEIC Listening & Reading 평균 점수")
+
+(t1 / t2)
+
+## Plots
+
+{r}
+toeic  %>%
+ mutate(country = fct_reorder(country, total))  %>%
+  ggplot(aes(total, country), size = 0.9) +
+ geom_point(color = "blue", size = 0.9) + 
+ geom_vline(xintercept = median(toeic$total), size = 0.3, color = lre) +
+ geom_vline(xintercept = mean(toeic$total), size = 0.3, color = lgr)+
+ theme_bw() +
+ theme(axis.text.y = element_text(size = rel(.8))) +
+ annotate("text", x=mean(toeic$total) , y = 10, label="평균", size = 2, color = "black") +
+ annotate("text", x=median(toeic$total),y = 20, label="중앙값", size = 2, color = lre) +
+ geom_hline(aes(yintercept = which(levels(as.factor(country)) == 'KOREA (ROK)')), 
+            lty =2, color = lgo) +
+ labs( y = "국가", x = "TOEIC 평균 점수")
+
+## Tables
+
+고려한 데이터의 `처음 5개 데이터`는 다음과 같다.
+
+{r}
+library(kableExtra)
+table2 <- head(toeic, 5)
+knitr::kable(table2, 
+             caption = "2021년 세계 Toeic 점수") %>% 
+ kable_styling(latex_options =c("striped", "hold_position", "condensed")) %>% column_spec(4, color = "#A50034")
+
+<<P.32 문자값 요약 실습>>>
+
+{r}
+rm(list=ls())
+
+job21 <- read.csv("data/occupation.csv")
+
+데이터 프레임 구조 확인
+
+{r}
+str(job21)
+
+결측값 확인
+
+{r}
+sum(is.na(job21))
+
+문자값 요약 - Stem & Leaf 도표를 활용하여 분포의 모양을 확인해 봅시다.
+
+{r}
+stem.leaf(job21$annual)
+
+히스토그램으로 분포의 모양 확인
+
+{r}
+hist(job21$annual)
+
+5-number 확인
+
+{r}
+fivenum(job21$annual)
+
+최소와 최대의 비율
+
+{r}
+max(job21$annual)/min(job21$annual)
+
+최소와 최대의 직업군은?
+
+{r}
+job21 %>% filter(annual==max(annual) | annual == min(annual))
+
+문자값 확인
+
+{r}
+# devtools::install_github("mgimond/tukeyedar")
+library(tukeyedar)
+
+eda_lsum(job21$annual,  l = 9)
+
+p.36 한쪽 꼬리 확률 계산
+
+{r}
+ls <- eda_lsum(job21$annual, l = 9)
+
+ls %>% 
+  mutate(percent = round((depth/621+1)*100,2)) %>%
+  relocate(percent, .after = depth)
+
+p.37 삼평균, 왜도와 첨도 구하기
+
+{r}
+tsk <- function(x){
+  q <- quantile(x, probs = c(0.25, 0.75), na.rm = TRUE)
+  e <- quantile(x, probs = c(0.125, 0.875), na.rm = TRUE)
+  d <- quantile(x, probs = c(0.0625, 0.9375), na.rm = TRUE)
+  m <- median(x)
+  tri <-  0.5*(m + (q[1] + q[2])/2)
+  s <-  ((q[2]-m) - (m-q[1]))/((q[2]-m) + (m-q[1]))
+  ke <- (e[2]-e[1])/(q[2]-q[1]) - 1.740
+  kd <- (d[2]-d[1])/(q[2]-q[1]) - 2.274
+  out <- round(cbind(tri,s,ke,kd),3)
+  row.names(out) <- NULL
+  out
+}
+
+tsk(job21$annual)
+
+펜스를 통한 이상값 추출
+
+{r}
+fence <- function(x, k=1.5){ 
+  quar <- quantile(x, probs = c(0.25, 0.75), na.rm = TRUE)
+  iqr <- diff(quar)
+  fence_l <- as.numeric(quar[1] - k*iqr)
+  fence_u <- as.numeric(quar[2] + k*iqr)
+  out_l <- x[(x <= fence_l)]
+  out_u <- x[(x >= fence_u)]
+  out <- cbind(out_l, out_u)
+}
+
+t(fence(job21$annual))
+
+펜스를 넘는 28개의 직업군을 확인
+
+{r}
+outlier <- job21[job21$annual >= 6150, ] 
+outlier %>% arrange(desc(annual))
+
+<<박스 그림(Box Plot)과 그 응용 실습, 교재 49p~>>
+
+{r}
+rm(list=ls())
+marathon <- read.csv("data/marathon.csv")
+
+데이터 구조 확인
+
+{r}
+str(marathon)
+
+결측값의 갯수 확인
+
+{r}
+sum(is.na(marathon))
+
+분포의 모양 확인
+
+{r}
+hist(marathon$time)
+
+5-number 확인
+
+{r}
+fivenum(marathon$time)
+
+요약 통계
+
+{r}
+summary(marathon)
+
+범주형으로 추정되는 데이터 내용에 어떤 데이터 값들이 있는지 확인
+
+{r}
+unique(marathon$age)
+
+데이터 형식을 범주형(factor)로 변환하고 데이터 구조를 확인
+
+{r}
+marathon$age <- as.factor(marathon$age)
+str(marathon)
+
+요약 통계
+
+{r}
+summary(marathon)
+
+Box Plot 그리기
+
+{r}
+# install.packages("ggplot2")
+library(ggplot2)
+
+ggplot(marathon, aes(x=time, y=1)) +
+  geom_boxplot()
+
+
+ggplot(marathon, aes(x=1, y=time)) +
+  geom_boxplot()
+
+점들이 겹쳐져서 보이지 않는 현상을 표현을 바꾸어 해결한 jitter
+
+{r}
+ggplot(marathon, aes(x=time, y=1)) +
+  geom_boxplot() +
+  geom_jitter()
+
+바이올린 그림
+
+{r}
+# install.packages("lvplot")
+library(lvplot)
+
+ggplot(marathon, aes(x=1, y=time)) +
+  geom_lv(aes(fill = ..LV..)) +
+  coord_flip()
+
+
+ggplot(marathon, aes(x=1, y=time)) +
+  geom_lv(aes(fill = ..LV..))
+  
+
+
+Letter Value Plot
+
+{r}
+ggplot(marathon, aes(x=age, y=time)) +
+  geom_boxplot() +
+  labs(x = "연령대", y = "시간") +
+  theme_bw()
+
+p.58 20대에 대한 추가 분석
+
+{r}
+library(dplyr)
+library(tukeyedar)
+
+m20 <- marathon %>% filter(age == '20')
+eda_lsum(m20$time, l=5)
+
+나이별 최고 기록 확인
+
+{r}
+marathon %>%
+  group_by(age) %>%
+  summarise(winner = min(time))
+
+graph 1 과 2를 생성하여 이를 하나의 화면에서 보면서 비교
+
+{r}
+graph1 <- ggplot(marathon, aes(x=time, y=age)) +
+geom_boxplot() +
+geom_jitter()
+
+graph2 <- ggplot(marathon, aes(x=time, y=age)) +
+geom_violin() +
+geom_jitter()
+
+gridExtra::grid.arrange(graph1, graph2, ncol=2)
+
+83p <<데이터의 재표현 실습>>
+
+{r}
+rm(list=ls())
+
+gestation <- read.csv("data/gestation1.csv")
+str(gestation)
+sum(is.na(gestation))
+summary(gestation)
+
+최대와 최소의 세부내용 확인
+
+{r}
+gestation %>%
+ dplyr::filter(period==min(period) | period==max(period))
+
+분포의 모양 확인
+
+{r}
+ggplot(gestation, aes(x=period, y=1)) + 
+geom_boxplot() +
+geom_jitter()
+
+ggplot(gestation, aes(x=period, y=1)) +
+geom_violin() +
+geom_jitter()
+
+데이터 형식 변환하고, 데이터 구조 확인
+
+{r}
+# install.packages("devtools")
+# library(devtools)
+# devtools::install_github("mgimond/tukeyedar")
+# library(tukeyedar)
+
+tukeyedar::eda_lsum(gestation$period)
+
+87p. 대칭성 진단: 힌클리의 간편법
+
+{r}
+hinkley=function (d)
+{
+md = median(d)
+mn = mean(d)
+s = diff(quantile(d, probs = c(0.25, 0.75)))
+H=(mn - md)/s
+names(H)="h"
+H
+}
+
+hinkley(gestation$period)
+
+Symmetry Plot 을 그리는 함수
+
+{r}
+symmetry_plot <- function(d){
+n <- length(d)
+no <- floor((n + 1) / 2)
+sd <- sort(d)
+i <- 1 : no
+u <- sd[n + 1 - i] - median(d)
+v <- median(d) - sd[i]
+ggplot(data.frame(v, u), aes(v, u)) +
+geom_point(size = 0.7, color = "blue") +
+geom_abline(color="red") +
+ggtitle("symmetry plot")+
+theme_bw() +
+theme(plot.title = element_text(colour = "black", size = 10))
+}
+
+symmetry_plot(gestation$period)
+
+89p. 재표현의 사다리 적용
+
+멱승변환을 적용하는 함수
+
+{r}
+trans_p <- function(x, p=0.0, Pp=FALSE){
+if(p == 0.0) {
+l <- ifelse(!is.na(x), log(x), NA)
+} else if( Pp == FALSE) {
+l <- ifelse(!is.na(x), (x^p - 1)/p , NA)
+} else {
+l <- ifelse(!is.na(x), x^p , NA) }
+return(l)
+}
+
+멱승변환의 P에서 hinkley's 를 구해주는 함수
+
+{r}
+find_p <- function(data, p){
+d <- rep(0, length(p))
+i <- 0
+for( k in p) {
+i <- i+1
+t <- trans_p(data, k)
+h <- round(hinkley(t), 4)
+d[i] <- h }
+dout <- cbind(p,d)
+return(dout)
+}
+
+양의 왜도 였으므로 p=1에서 사다리를 내려가면서 적용
+
+{r}
+p <- seq(1.0, -0.5, -0.1)
+find_p(gestation$period, p)  # p값에 얼마를 적용할 때 가장 대칭에 가까와 지는지를 조사
+
+변환 전후의 대칭도 확인
+
+{r}
+gestation$trans <- trans_p(gestation$period, 0.7)
+
+symmetry_plot(gestation$period)
+
+symmetry_plot(gestation$trans)
+
+변환 전후 히스토그램 확인
+
+{r}
+hist(gestation$period)
+hist(gestation$trans)
+
+96p. 실습 연령대 집단별 연봉 수준 비교
+
+{r}
+rm(list=ls())
+
+salary <- read.csv("data/salary.group.csv")
+sum(is.na(salary))
+summary(salary)
+
+연차(근속연수)와 연봉간의 관계
+
+{r}
+salary %>%
+  ggplot(aes(group,annual)) + 
+  geom_boxplot()
+
+Spread-level-plot 을 통한 기울기 구하기
+
+{r}
+# 함수가 실행되지 않을 경우 아래 #를 해제하고 한 번 실행 후 다시 해 볼 것.
+# source("eda.funs.R")
+
+spread_level_plot(salary, annual, group)
+
+99p. log 변환하기
+
+{r}
+salary <- salary %>%
+  mutate(annual_trans = log(annual)) 
+# 새로운 열을 만들어서 annual_trans 라는 변수명으로 로그 변환 값을 저장
+
+salary %>%
+  ggplot(aes(group, annual_trans)) +
+  geom_boxplot()
+
+108p. 선형성의 진단과 교정
+
+{r}
+rm(list=ls())
+source("eda.funs.R")
+
+market <- read.csv("data/onmarket.csv")
+str(market)
+sum(is.na(market))
+summary(market)
+
+
+3-point plot
+
+{r}
+library(tukeyedar)
+eda_3pt(market, advert, sales)
+
+bH (3-요약점 절반의 기울기 비)를 활용하여 멱승변환 기준 구하는 과정
+
+{r}
+
+market.3p <- data.frame(
+  x=eda_3pt(market,advert,sales)$xmed,
+  y=eda_3pt(market,advert,sales)$ymed
+)
+
+# 멱승변화의 범위
+x <- seq(1, -3, -0.1)  # X는 1에서 -3까지 0.1 단위로 낮춰가며 멱승변환
+y <- seq(1,2,0.1) # y는 1에서 2까지 0.1씩 올려가면서 멱승변환
+
+bp <- data.frame(
+  matrix(0, nrow = length(x)*length(y), ncol = 3)
+)
+
+colnames(bp) <- c("px", "py", "b_H")  # 컬럼의 이름 지정
+
+# 반복 계산
+k <- 0
+for(i in x){
+  for(j in y){
+    k = k+1
+    bp[k, 1] <- i
+    bp[k, 2] <- j
+    bp[k, 3] <- round(straighten(market.3p, i, j, TRUE), 2)
+  }
+}
+
+bp %>%
+  filter(b_H >= 0.95 & b_H <= 1.05)
+
+
+멱승변환과 직선화 결과 확인
+
+{r}
+library(ggplot2)
+
+market$advert_trans <- trans_p(market$advert, 0.0, Pp=TRUE)
+market$sales_trans <- trans_p(market$sales, 2.0, Pp=TRUE)
+
+market %>%
+  ggplot(aes(advert_trans, sales_trans)) + 
+  geom_point(color = "blue", size = 1.2, alpha = 0.5) +
+  xlab("log(advert") + 
+  ylab("sale^2") + 
+  labs(subtitle = "3-요약점 직선화 결과") +
+  theme_bw()
+
+
+p.129 지역별 제품별 매출 성향 분석
+
+{r}
+## Median Polish Example 
+## Effect over Area and Product
+require(graphics)
+
+Sales <-
+  rbind(c(4.8, 4.8, 3.5, 3.5, 3.1),
+        c(6.1, 5.5, 3.6, 4.6, 3.6),
+        c(7.4, 5.9, 3.7, 3.0, 3.2),
+        c(4.8, 4.0, 3.9, 4.6, 3.3))
+
+dimnames(Sales) <- list(c("A", "B", "C", "D"), c("한국", "미국", "유럽", "중동", "남미"))
+Sales
+# med.d <- medpolish(Sales)
+# med.d
+(med.d <- medpolish(Sales))
+
+round((med.d <- medpolish(Sales))$row, 2) # 행(지역 효과)
+round((med.d <- medpolish(Sales))$col, 2) # 열(제품 효과)
+
+
+p.131 기온의 월(계절) vs. 지역효과 분석
+
+1991년부터 2020년까지 국내 219개 위치에서 측정된 월별 평균기온 데이터를 기반으로 월별 온도의 차이, 지역별 차이를 분석해 봅시다.
+
+{r}
+
+month <- read.csv("data/monthly.1991.2020.csv")
+str(month)
+summary(month)
+
+
+medpolish() 함수를 사용하여 중앙값 정제
+
+{r}
+
+atemp <- data.frame(month[, -c(1,2)])
+row.names(atemp) <- month$location
+
+library(stats)
+ma.fit <- medpolish(atemp, 10)
+
+{r}
+str(ma.fit)
+
+
+{r}
+ma.fit$overall
+head(ma.fit$row, 5)
+
+추정된 열효과(월별 온도의 추이)를 순서대로 나열하면 다음과 같다.
+
+{r}
+mon <- c(1:12)
+coleffect <- ma.fit$overall + ma.fit$col
+check_c <- data.frame(mon, coleffect)
+
+library(dplyr)
+library(ggplot2)
+check_c %>% 
+  ggplot(aes(reorder(mon, coleffect), coleffect)) +
+  geom_point(color = "blue") +
+  geom_vline(xintercept=ma.fit$overall, color = "green") +
+  labs(x="월", y= "평균온도") +
+  coord_flip() + theme_bw()
+
+추정된 행효과(지역별 온도의 차이)를 크기 순서대로 나열하면 다음과 같다.
+
+{r}
+loc <-row.names(atemp)
+roweffect <- ma.fit$overall + ma.fit$row
+check_r <- data.frame(loc, roweffect)
+check_r %>%
+  ggplot(aes(reorder(loc, roweffect), roweffect)) +
+  geom_point(color = "blue") +
+  geom_hline(yintercept = ma.fit$overall, color = "green") +
+  labs(x="위치", y="평균온도") + 
+  theme_bw()
+
+가법 모형 적합후 잔차의 패턴은 다음과 같다.
+
+{r}
+## melt() 함수 사용하려면 하기 "reshape" library 콜 필요
+library(reshape) 
+
+res <- as.data.frame(ma.fit$residuals)
+
+res %>%
+  mutate(location = row.names(res)) %>%
+  melt() %>%
+  group_by(variable) %>%
+  mutate(outlier = ifelse(is_outlier(value), location, as.character(NA))) %>%
+  ggplot(aes(x=variable, y=value)) + 
+  geom_boxplot() +
+  geom_text(aes(label=outlier), size=3, na.rm = TRUE, hjust=-0.5) +
+  theme_bw()
+
+잔차의 분석을 위해 아래 분석을 추진해 본다.
+
+{r}
+library(forcats)
+
+res %>%
+  mutate(location = row.names(res)) %>%
+  melt() %>%
+  group_by(variable) %>%
+  mutate(outlier = ifelse(is_outlier(value), value, as.numeric(NA))) %>%
+  dplyr::filter(!is.na(outlier)) %>%
+  ggplot(aes(x=variable, y=fct_reorder(location, value), fill = outlier)) +
+  geom_tile() +
+  geom_text(aes(label=sprintf("%0.2f", round(value, 2))), color = "white", size = 1.5) +
+  labs(x = "월", y = "위치", subtitle = "1991 ~ 2020 평균 온도의 중앙값 정제결과") +
+  theme_bw() +
+  scico::scale_fill_scico("lajolla") +
+  theme(axis.text = element_text(size=rel(1)))
+
+분석된 가법 모형의 타당성을 확인하기 위해 비교값을 계산한다. 더불어 비교 값과 잔차의 관계를 탐색한다.
+
+{r}
+cv <- with(ma.fit, outer(row, col, "*")/overall)
+
+df <- data.frame(loc = row.names(atemp), cv = as.vector(cv), res = as.vector(ma.fit$residuals))
+
+df %>%
+  ggplot(aes(cv, res, label = loc)) +
+  geom_point(color="blue", size=0.5, alpha=0.3) +
+  geom_text(size=1.5, hjust=0, nudge_y = 0.1, nudge_x = 0.1) +
+  labs(subtitle="기울기 보정전", x = "comparison values", y="residuals") +
+  theme_bw()
+
+기울기를 반영하여 패턴을 재확인
+
+{r}
+#install.packages("LearnEDAfunctions")  
+library(LearnEDAfunctions)
+rline(res~cv, df)$b
+df %>%
+  ggplot(aes(cv, res - (-0.49)*cv , label = loc)) +
+  geom_point(color="blue", size=0.5, alpha=0.3) +
+  geom_text(size=1, hjust=0, nudge_y = 0.1, nudge_x = 0.1) +
+  geom_hline(yintercept = 0, color = "red") +
+  labs(subtitle="기울기 보정후", x = "comparison values", y="adjusted residuals") +
+  theme_bw()
+
+p.143 << 평활화>> - 시계열 데이터의 정제
+
+p.155 2022년 K League 관중 수의 변화를 분석
+
+{r 데이터 불러오기}
+
+league <- read.csv("data/kleague.2022.csv")
+str(league)
+summary(league)
+
+
+
+관중수 분포
+
+{r}
+hist(league$spectator)   # 분포의 모양 확인
+
+팀별 평균 관중 수
+
+{r}
+#install.packages("stats")
+#install.packages("scico")
+#install.packages("tidyverse)
+
+library(tidyverse)
+library(forcats)
+library(stats)
+library(dplyr)
+library(ggplot2)
+library(scico)
+
+vr <- aggregate(spectator ~ home + visitor, 
+                data = subset(league, league="K LEAGUE 1"), mean)
+vr %>% ggplot(aes(fct_reorder(home, -spectator),
+                  fct_reorder(visitor, spectator),
+                  fill = spectator)) +
+  geom_tile() +
+  geom_text(aes(label=sprintf("%0.2f", round(spectator/1000, 2))),
+            color="red", size=1.5) +
+  labs(x="홈 팀", y = "방문팀", subtitle = "2022년 K리그 1의 평균관중수 (단위1000명)") +
+  theme_bw() +
+  theme(axis.text = element_text(angle=90), legend.position = "none") +
+  scico::scale_fill_scico("lajolla")
+
+{r}
+ulsan <- league %>%
+  filter(spectator != 0) %>%
+  filter(home == "울산 현대" | visitor == "울산 현대") %>%
+  arrange(gday) %>%
+  mutate(ugame = seq(1, length(gday), 1))
+
+summary(ulsan$spectator) # 요약통계
+
+{r 일정별 관중수 변화 추세}
+ulsan %>%
+  ggplot(aes(ugame, spectator)) +
+  geom_point() +
+  geom_line() +
+  theme_bw()
+
+울산 현대 홈경기 관중 변화 추이
+
+{r}
+ulsan_home <- league %>%
+  filter(spectator != 0) %>%
+  filter(home == "울산 현대") %>%
+  arrange(gday) %>%
+  mutate(ugame = seq(1, length(gday), 1))
+
+ulsan_home %>%
+  ggplot(aes(ugame, spectator)) +
+  geom_point() +
+  geom_line() +
+  theme_bw()
+
+울산 현대 어웨이 경기 관중 변화 추이
+
+{r}
+ulsan_away <- league %>%
+  filter(spectator != 0) %>%
+  filter(visitor == "울산 현대") %>%
+  arrange(gday) %>%
+  mutate(ugame = seq(1, length(gday), 1))
+
+ulsan_away %>%
+  ggplot(aes(ugame, spectator)) +
+  geom_point() +
+  geom_line() +
+  theme_bw()
+
+해닝을 적용한 관중 수의 변화 추이 분석
+
+{r}
+library(LearnEDAfunctions)
+ulsan$s.3R <- smooth(ulsan$spectator, kind = "3R")
+ulsan$s.3RSS <- smooth(ulsan$spectator, kind = "3RSS")
+ulsan$s.3RS3R2 <- smooth(ulsan$spectator, kind = "3RS3R", twiceit = TRUE)
+ulsan$s.3RS3R2H <- han(smooth(ulsan$spectator, kind = "3RS3R", twiceit = TRUE))
+
+ulsan$rough <- ulsan$spectator - ulsan$s.3RS3R2H
+
+ulsan %>%
+  ggplot(aes(ugame, spectator)) +
+  geom_point(color = "blue") +
+  geom_line(aes(ugame, s.3RS3R2H), color = "red") +
+  labs(subtitle = "3RS3R2H 적합 결과")
+
+ulsan %>%
+  ggplot(aes(ugame, rough)) +
+  geom_point(color = "blue") +
+  geom_hline(yintercept = 0, color = "red") +
+  labs(x = "경기", y = "거침(rough", subtitle = "평활화 이후의 거침") +
+  theme_bw()
+
