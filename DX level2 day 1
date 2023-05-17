@@ -1,0 +1,707 @@
+---
+title: "Welcome to LG DX Level 2 course: DX Enabler - Day 1 #1"
+author: "하재선 책임 | BS 인재육성팀"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    df_print: paged
+---
+
+## EDA의 정의
+
+탐색적 데이터 분석(EDA)은 데이터 세트를 조사하고 분석하여 주요 특성을 요약하는 과정
+
+### EDA의 목적
+
+데이터에 대한 인사이트를 얻고 정보에 입각한 의사 결정에 사용할 수 있는 패턴, 관계 및 이상 징후를 식별하는 데이터 분석 기술
+
+-   데이터의 기본 구조를 파악하고,
+-   이상값(outlier)을 감지하고,
+-   변수 분포를 이해하고,
+-   잠재적인 오류 또는 편향의 원인을 파악하는 데 도움
+
+### 탐색적 데이터 분석
+
+-   사전 가정 없이 데이터의 특징과 내재한 구조적 관계를 파악하기 위한 작업들로 구성\
+
+-   있는 그대로 데이터를 해석하고 숫자들의 패턴을 확인하여 데이터에 대한 전반적인 이해 증진
+
+-   특정 가설/사실을 증명하기 보다는 새롭게 증명되어야 할 `가설`의 선별
+
+-   탐색적 단계에서 수집된 정보에 대한 실증적 `평가`\
+
+-   도출된 가설의 `검증`
+
+### EDA의 고전적 방법
+
+`EDA`의 방법들은 컴퓨터의 일반적인 활용이 제한되었던 `1970~1990`년대에 소개되었다. 이들은 `수작업(pencil-and-paper)`을 전제로 정제되고 단순화되어 소개되었지만, 현재의 컴퓨터 환경에서의 데이터 분석에서도 중요한 역할을 한다. 핵심적인 개념을 이해할 수 있는 방법들을 목적에 따라 정리해 보면 아래 표와 같다.
+
++----------+----------------------------------------------------------------------------+
+| 목적     | 방법                                                                       |
++:========:+:===========================================================================+
+| 요약     | 순서 통계량(`order statistics`), 중앙값(`median`)                          |
+|          |                                                                            |
+|          | 문자 값 요약(`letter value Summaries`),                                    |
+|          |                                                                            |
+|          | 다섯 숫자 요약(`five-number summaries`)                                    |
+|          |                                                                            |
+|          | 삼 평균(`tri-mean`), 사분위수 범위(`Inter Quartile Range`), 펜스(`fences`) |
++----------+----------------------------------------------------------------------------+
+| 비교     | 박스 그림(`Box Plot`),                                                     |
+|          |                                                                            |
+|          | 문자값 그림(`letter value plot`)                                           |
+|          |                                                                            |
+|          | 산포-수준 그림(`spread-level Plot`)                                        |
+|          |                                                                            |
+|          | 중앙값 정제(`median polish`)                                               |
++----------+----------------------------------------------------------------------------+
+| 관계     | 대칭도(`symmetry plot`),                                                   |
+|          |                                                                            |
+|          | 3-요약 점(`three-summary points`),                                         |
+|          |                                                                            |
+|          | 직선화(`streightening`),                                                   |
+|          |                                                                            |
+|          | 저항선(`resistance line`),                                                 |
+|          |                                                                            |
+|          | 평활화(`smoothing`)                                                        |
++----------+----------------------------------------------------------------------------+
+| 변환     | 재표현의 사다리(`ladder of re-expression`)                                 |
++----------+----------------------------------------------------------------------------+
+
+## EDA의 원칙-4R (교재 28p)
+
+### 1. 저항성(Resistance)
+
+이상점(outlier)의 영향을 덜 받아야 한다. 데이터의 일부 파손에 대한 저항성
+
+평균보다 중앙값을 사용함. 순서통계량의 의미를 중시.
+
+### 2. 잔차(Residuals)
+
+데이터의 분석 적합성을 가져야 한다. Data-fitting; 주 경향에서 얼마나 벗어났는가
+
+잔차분해: CDA에서는 선형분해에서의 fit을 중시하지만, EDA에서는 경향성만 봄.
+
+### 3. 재표현 (Re-expression)
+
+타당성이 있는 것은 아님. 철저히 해석을 위해서 개념을 추상화 시킨 것.
+
+분포의 대칭성, 직선화,
+
+CDA는 방법론별로 가정이 많이 있음. -\> 때로는 억지스러운 면이 있고, 해석을 위해서 가정을 중시
+
+그러나 EDA는 가정을 그다지 고려하지 않음.
+
+### 4. 현실화/시각화 (Revealation/ Representation)
+
+문해력, 데이터의 해석력, 자료안에 숨겨진 정보를 보여주는 효율적인 수단
+
+Box Plot 이 대표적인 표현방식 - Box plot 에서 중앙값을 보여주는 것은 EDA방식이기 때문.
+
+기존의 EDA는 평균 중심 (평균은 생각보다 더 이론적이고 완벽한 숫자)
+
+```{r}
+# 에시 p.39의 Sheve Diagram
+
+# install.packages("vcd")
+library(vcd)
+
+data("HairEyeColor")
+
+## aggregate over 'sex':
+(haireye <- margin.table(HairEyeColor, c(2,1)))
+
+## plot expected values:
+sieve(haireye, sievetype = "expected", shade = TRUE)
+
+## plot observed table:
+sieve(haireye, shade = TRUE)
+
+## plot complete diagram:
+sieve(HairEyeColor, shade = TRUE)
+
+## example with observed values in the cells:
+sieve(haireye, shade = TRUE, labeling = labeling_values,
+      gp_text = gpar(fontface = 2))
+
+## example with expected values in the cells:
+sieve(haireye, shade = TRUE, labeling = labeling_values,
+      value_type = "expected", gp_text = gpar(fontface = 2))
+
+## an example for the formula interface:
+data("VisualAcuity")
+sieve(Freq ~ right + left,  data = VisualAcuity)
+
+```
+
+### 패키지 설치 실습
+
+```{r}
+# install.packages("aplpack")
+# install.packages("readr")
+# install.packages("dplyr")
+```
+
+### 변수의 지정
+
+```{r}
+lre <- "#A50034"   #html 컬러코드
+lgr <- "#6b6b6b"
+lgo <- "#FAB23D"
+toeic <- read.csv(paste0("./data/toeic.2021.csv")) # 45개국 toeic 점수
+
+source("eda.funs.R")
+
+```
+
+### \<\<교재 44p\>\> Stem & leaf 도표로 데이터 보기
+
+```{r}
+library(aplpack)
+library(readr)
+library(dplyr)
+
+toeic <- read.csv("data/toeic.2021.csv")
+
+max(toeic$total)
+
+min(toeic$total)
+
+mean(toeic$total)
+
+median(toeic$total)
+
+stem.leaf(toeic$total, unit = 1, m =1)
+```
+
+### 데이터 구조 들여다 보기
+
+```{r}
+str(toeic)
+```
+
+### 결측값(중간에 측정되지 않아 누락된 값)이 있는지 알아보기
+
+```{r}
+sum(is.na(toeic))
+```
+
+### Table
+
+```{r}
+table <- head(toeic,5)
+table
+
+```
+
+### 조건 부여 후 검색해 보기
+
+### 줄기 - 잎 그리기 (기본 R패키지의 stem함수 사용)
+
+```{r}
+stem(toeic$total, scale = 10)    # 줄기-잎 그리기
+```
+
+### 조건 부여 후 검색해 보기
+
+```{r}
+unique(toeic$country)  # toeic 데이터의 country 열에 어떤 변수들이 있는가?
+toeic %>% dplyr::filter(country == "KOREA (ROK)")
+
+stem.leaf(toeic$total, unit = 10, m =1)
+stem.leaf(toeic$total, unit = 10, m =2)
+stem.leaf(toeic$total, unit = 10, m =5)
+```
+
+### 중앙값과 평균 확인
+
+```{r}
+median(toeic$total)  # 중앙값
+mean(toeic$total) # 평균값
+```
+
+### plot 길이의 조정
+
+```{r}
+stem(toeic$total, scale = 1)
+```
+
+### 800점 이상인 국가를 확인
+
+```{r}
+toeic %>% dplyr::filter(total >= 800)
+toeic %>% dplyr::filter(total == 826)
+```
+
+### 540점 미만인 국가를 확인
+
+```{r}
+toeic %>% dplyr::filter(total <= 530)
+toeic %>% dplyr::filter(total == 480)
+```
+
+### 인도네시아와 같은 언어를 사용하는 나라인 말레이시아의 점수 확인
+
+```{r}
+toeic %>% filter(country == "MALAYSIA")
+```
+
+### Reading 과 Listening 의 점수 상호 비교
+
+```{r}
+stem.leaf.backback(toeic$listening, toeic$reading, unit = 10, m=2)
+```
+
+전반적으로 reading 보다 listening 의 점수가 높음.
+
+### Graph
+
+```{r}
+library(patchwork)
+library(forcats)
+library(ggplot2)
+t1 <- toeic  %>%
+ mutate(country = fct_reorder(country, total))  %>%
+  ggplot(aes(total, country), size = 0.9) +
+ geom_point(color = "blue", size = 0.9) + 
+ geom_vline(xintercept = median(toeic$total), size = 0.3, color = lre) +
+ geom_vline(xintercept = mean(toeic$total), size = 0.3, color = lgr)+
+ theme_bw() +
+ theme(axis.text.y = element_text(size = rel(.8))) +
+ annotate("text", x=mean(toeic$total) , y = 10, label="평균", size = 2, color = "black") +
+ annotate("text", x=median(toeic$total),y = 20, label="중앙값", size = 2, color = lre) +
+ geom_hline(aes(yintercept = which(levels(as.factor(country)) == 'KOREA (ROK)')), 
+            lty =2, color = lgo) +
+ labs( y = "국가", x = "TOEIC 평균 점수")
+
+t2 <- toeic  %>%
+ mutate(country = fct_reorder(country, listening))  %>%
+ ggplot(aes(listening, country), size = 0.9) +
+ geom_point(color = "blue", size = 0.9) + 
+ geom_point(aes(reading, country), size = 0.5, color = lre, size = 0.7) + 
+ geom_vline(xintercept = median(toeic$reading), size = 0.3, color = lre) +
+ geom_vline(xintercept = mean(toeic$reading), size = 0.3, color = lgr)+
+ geom_vline(xintercept = median(toeic$listening), size = 0.3, color = lre) +
+ geom_vline(xintercept = mean(toeic$listening), size = 0.3, color = lgr)+
+ geom_hline(aes(yintercept = which(levels(as.factor(country)) == 'KOREA (ROK)')), 
+            lty =2, color = "orange") +
+ theme_bw() +
+ theme(axis.text.y = element_text(size = rel(.8))) +
+ annotate("text", x=mean(toeic$reading) , y = 10,
+          label="Reading 평균", size = 2, color = "black") +
+ annotate("text", x=median(toeic$reading),y = 20,
+          label="Reading 중앙값", size = 2, color = lre) +
+ annotate("text", x=mean(toeic$listening), 
+          y = 30, label="Listening 평균", size = 2, color = "black") +
+ annotate("text", x=median(toeic$listening), 
+          y = 40, label="Listening 중앙값", size = 2, color = lre) +
+ labs( y = "국가", x = "TOEIC Listening & Reading 평균 점수")
+
+(t1 / t2)
+```
+
+### \## Plots
+
+```{r}
+toeic  %>%
+ mutate(country = fct_reorder(country, total))  %>%
+  ggplot(aes(total, country), size = 0.9) +
+ geom_point(color = "blue", size = 0.9) + 
+ geom_vline(xintercept = median(toeic$total), size = 0.3, color = lre) +
+ geom_vline(xintercept = mean(toeic$total), size = 0.3, color = lgr)+
+ theme_bw() +
+ theme(axis.text.y = element_text(size = rel(.8))) +
+ annotate("text", x=mean(toeic$total) , y = 10, label="평균", size = 2, color = "black") +
+ annotate("text", x=median(toeic$total),y = 20, label="중앙값", size = 2, color = lre) +
+ geom_hline(aes(yintercept = which(levels(as.factor(country)) == 'KOREA (ROK)')), 
+            lty =2, color = lgo) +
+ labs( y = "국가", x = "TOEIC 평균 점수")
+```
+
+\## Tables
+
+고려한 데이터의 \`처음 5개 데이터\`는 다음과 같다.
+
+```{r}
+library(kableExtra)
+table2 <- head(toeic, 5)
+knitr::kable(table2, 
+             caption = "2021년 세계 Toeic 점수") %>% 
+ kable_styling(latex_options =c("striped", "hold_position", "condensed")) %>% column_spec(4, color = "#A50034")
+```
+
+### \<\<P.73 문자값 요약 실습\>\>\>
+
+```{r}
+rm(list=ls())
+
+job21 <- read.csv("data/occupation.csv")
+```
+
+### 데이터 프레임 구조 확인
+
+```{r}
+str(job21)
+```
+
+### 결측값 확인
+
+```{r}
+sum(is.na(job21))
+```
+
+### 문자값 요약 - Stem & Leaf 도표를 활용하여 분포의 모양을 확인해 봅시다.
+
+```{r}
+stem.leaf(job21$annual)
+```
+
+### 히스토그램으로 분포의 모양 확인
+
+```{r}
+hist(job21$annual)
+```
+
+### 5-number 확인
+
+```{r}
+fivenum(job21$annual)
+```
+
+### 최소와 최대의 비율
+
+```{r}
+max(job21$annual)/min(job21$annual)
+```
+
+### 최소와 최대의 직업군은?
+
+```{r}
+job21 %>% filter(annual==max(annual) | annual == min(annual))
+```
+
+### 문자값 확인
+
+```{r}
+# devtools::install_github("mgimond/tukeyedar")
+library(tukeyedar)
+
+eda_lsum(job21$annual,  l = 9)
+```
+
+### 한쪽 꼬리 확률 계산
+
+```{r}
+ls <- eda_lsum(job21$annual, l = 9)
+
+ls %>% 
+  mutate(percent = round((depth/621+1)*100,2)) %>%
+  relocate(percent, .after = depth)
+```
+
+### 삼평균, 왜도와 첨도 구하기
+
+```{r}
+tsk <- function(x){
+  q <- quantile(x, probs = c(0.25, 0.75), na.rm = TRUE)
+  e <- quantile(x, probs = c(0.125, 0.875), na.rm = TRUE)
+  d <- quantile(x, probs = c(0.0625, 0.9375), na.rm = TRUE)
+  m <- median(x)
+  tri <-  0.5*(m + (q[1] + q[2])/2)
+  s <-  ((q[2]-m) - (m-q[1]))/((q[2]-m) + (m-q[1]))
+  ke <- (e[2]-e[1])/(q[2]-q[1]) - 1.740
+  kd <- (d[2]-d[1])/(q[2]-q[1]) - 2.274
+  out <- round(cbind(tri,s,ke,kd),3)
+  row.names(out) <- NULL
+  out
+}
+
+tsk(job21$annual)
+```
+
+### 펜스를 통한 이상값 추출
+
+```{r}
+fence <- function(x, k=1.5){ 
+  quar <- quantile(x, probs = c(0.25, 0.75), na.rm = TRUE)
+  iqr <- diff(quar)
+  fence_l <- as.numeric(quar[1] - k*iqr)
+  fence_u <- as.numeric(quar[2] + k*iqr)
+  out_l <- x[(x <= fence_l)]
+  out_u <- x[(x >= fence_u)]
+  out <- cbind(out_l, out_u)
+}
+
+t(fence(job21$annual))
+```
+
+### 펜스를 넘는 28개의 직업군을 확인
+
+```{r}
+outlier <- job21[job21$annual >= 6150, ] 
+outlier %>% arrange(desc(annual))
+```
+
+### \<\<박스 그림(Box Plot)과 그 응용 실습, 교재 90p\>\>
+
+```{r}
+rm(list=ls())
+marathon <- read.csv("data/marathon.csv")
+```
+
+#### 데이터 구조 확인
+
+```{r}
+str(marathon)
+```
+
+#### 결측값의 갯수 확인
+
+```{r}
+sum(is.na(marathon))
+```
+
+#### 분포의 모양 확인
+
+```{r}
+hist(marathon$time)
+```
+
+#### 5-number 확인
+
+```{r}
+fivenum(marathon$time)
+```
+
+#### 요약 통계
+
+```{r}
+summary(marathon)
+```
+
+#### 범주형으로 추정되는 데이터 내용에 어떤 데이터 값들이 있는지 확인
+
+```{r}
+unique(marathon$age)
+```
+
+#### 데이터 형식을 범주형(factor)로 변환하고 데이터 구조를 확인
+
+```{r}
+marathon$age <- as.factor(marathon$age)
+str(marathon)
+```
+
+#### 요약 통계
+
+```{r}
+summary(marathon)
+```
+
+#### Box Plot 그리기
+
+```{r}
+# install.packages("ggplot2")
+library(ggplot2)
+
+ggplot(marathon, aes(x=time, y=1)) +
+  geom_boxplot()
+
+
+ggplot(marathon, aes(x=1, y=time)) +
+  geom_boxplot()
+```
+
+#### 점들이 겹쳐져서 보이지 않는 현상을 표현을 바꾸어 해결한 jitter
+
+```{r}
+ggplot(marathon, aes(x=time, y=1)) +
+  geom_boxplot() +
+  geom_jitter()
+```
+
+#### 바이올린 그림
+
+```{r}
+# install.packages("lvplot")
+library(lvplot)
+
+ggplot(marathon, aes(x=1, y=time)) +
+  geom_lv(aes(fill = ..LV..)) +
+  coord_flip()
+```
+
+#### Letter Value Plot
+
+```{r}
+ggplot(marathon, aes(x=age, y=time)) +
+  geom_boxplot() +
+  labs(x = "연령대", y = "시간") +
+  theme_bw()
+```
+
+#### 20대에 대한 추가 분석
+
+```{r}
+library(dplyr)
+library(tukeyedar)
+
+m20 <- marathon %>% filter(age == '20')
+eda_lsum(m20$time, l=5)
+```
+
+#### 나이별 최고 기록 확인
+
+```{r}
+marathon %>%
+  group_by(age) %>%
+  summarise(winner = min(time))
+```
+
+#### graph 1 과 2를 생성하여 이를 하나의 화면에서 보면서 비교
+
+```{r}
+graph1 <- ggplot(marathon, aes(x=time, y=age)) +
+geom_boxplot() +
+geom_jitter()
+
+graph2 <- ggplot(marathon, aes(x=time, y=age)) +
+geom_violin() +
+geom_jitter()
+
+gridExtra::grid.arrange(graph1, graph2, ncol=2)
+```
+
+#### \<\<데이터의 재표현 실습, 교재 123p\>\>
+
+```{r}
+rm(list=ls())
+
+gestation <- read.csv("data/gestation1.csv")
+str(gestation)
+sum(is.na(gestation))
+summary(gestation)
+```
+
+#### 최대와 최소의 세부내용 확인
+
+```{r}
+gestation %>%
+ dplyr::filter(period==min(period) | period==max(period))
+```
+
+#### 분포의 모양 확인
+
+```{r}
+ggplot(gestation, aes(x=period, y=1)) + 
+geom_boxplot() +
+geom_jitter()
+
+ggplot(gestation, aes(x=period, y=1)) +
+geom_violin() +
+geom_jitter()
+```
+
+#### 데이터 형식 변환하고, 데이터 구조 확인
+
+```{r}
+# install.packages("devtools")
+# library(devtools)
+# devtools::install_github("mgimond/tukeyedar")
+# library(tukeyedar)
+
+tukeyedar::eda_lsum(gestation$period)
+```
+
+#### Box Plot 그리기
+
+```{r}
+hinkley=function (d)
+{
+md = median(d)
+mn = mean(d)
+s = diff(quantile(d, probs = c(0.25, 0.75)))
+H=(mn - md)/s
+names(H)="h"
+H
+}
+
+hinkley(gestation$period)
+```
+
+#### Symmetry Plot 을 그리는 함수
+
+```{r}
+symmetry_plot <- function(d){
+n <- length(d)
+no <- floor((n + 1) / 2)
+sd <- sort(d)
+i <- 1 : no
+u <- sd[n + 1 - i] - median(d)
+v <- median(d) - sd[i]
+ggplot(data.frame(v, u), aes(v, u)) +
+geom_point(size = 0.7, color = "blue") +
+geom_abline(color="red") +
+ggtitle("symmetry plot")+
+theme_bw() +
+theme(plot.title = element_text(colour = "black", size = 10))
+}
+
+symmetry_plot(gestation$period)
+```
+
+#### 재표현의 사다리 적용
+
+멱승변환을 적용하는 함수
+
+```{r}
+trans_p <- function(x, p=0.0, Pp=FALSE){
+if(p == 0.0) {
+l <- ifelse(!is.na(x), log(x), NA)
+} else if( Pp == FALSE) {
+l <- ifelse(!is.na(x), (x^p - 1)/p , NA)
+} else {
+l <- ifelse(!is.na(x), x^p , NA) }
+return(l)
+}
+```
+
+멱승변환의 P에서 hinkley's 를 구해주는 함수
+
+```{r}
+find_p <- function(data, p){
+d <- rep(0, length(p))
+i <- 0
+for( k in p) {
+i <- i+1
+t <- trans_p(data, k)
+h <- round(hinkley(t), 4)
+d[i] <- h }
+dout <- cbind(p,d)
+return(dout)
+}
+```
+
+양의 왜도 였으므로 p=1에서 사다리를 내려가면서 적용
+
+```{r}
+p <- seq(1.0, -0.5, -0.1)
+find_p(gestation$period, p)
+```
+
+#### 변환 전후의 대칭도 확인
+
+```{r}
+gestation$trans <- trans_p(gestation$period, 0.7)
+
+symmetry_plot(gestation$period)
+
+symmetry_plot(gestation$trans)
+```
+
+#### 변환 전후 히스토그램 확인
+
+```{r}
+hist(gestation$period)
+hist(gestation$trans)
+```
